@@ -1,57 +1,138 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar">
 <head>
-  <meta charset="UTF-8">
-  <title>Background & Counter</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #222;
-      color: white;
-      text-align: center;
-      padding-top: 100px;
-      transition: background-color 0.5s;
-    }
-
-    button {
-      padding: 15px 25px;
-      font-size: 18px;
-      cursor: pointer;
-      border: none;
-      border-radius: 8px;
-      margin: 10px;
-    }
-
-    #counter {
-      font-size: 40px;
-      margin-top: 20px;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mini Social with Comments</title>
+<style>
+body {
+    font-family: Arial;
+    direction: rtl;
+    background: #f0f2f5;
+    margin: 0;
+}
+header {
+    background: #1877f2;
+    color: white;
+    padding: 15px;
+    text-align: center;
+}
+.container {
+    max-width: 500px;
+    margin: auto;
+    padding: 10px;
+}
+.box {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+textarea, input {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+button {
+    margin-top: 8px;
+    padding: 8px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    background: #1877f2;
+    color: white;
+    width: 100%;
+}
+.post, .comment {
+    background: white;
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+.comment {
+    background: #f0f2f5;
+    margin-left: 10px;
+    font-size: 13px;
+}
+.actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5px;
+}
+</style>
 </head>
 <body>
 
-  <h1>My Simple Website</h1>
+<header>Mini Social</header>
 
-  <button onclick="changeBackground()">Change Background</button>
-  <button onclick="addCounter()">Add +2</button>
+<div class="container">
 
-  <div id="counter">0</div>
+<div class="box">
+    <h3>نشر بوست</h3>
+    <textarea id="postInput" rows="2" placeholder="اكتب بوست..."></textarea>
+    <button onclick="addPost()">نشر</button>
+</div>
 
-  <script>
-    let count = 0;
-    const colors = ["#1abc9c", "#3498db", "#9b59b6", "#e74c3c", "#f39c12"];
-    let colorIndex = 0;
+<div id="posts"></div>
 
-    function changeBackground() {
-      document.body.style.backgroundColor = colors[colorIndex];
-      colorIndex = (colorIndex + 1) % colors.length;
-    }
+</div>
 
-    function addCounter() {
-      count += 2;
-      document.getElementById("counter").textContent = count;
-    }
-  </script>
+<script>
+// بيانات البوستات
+let posts = JSON.parse(localStorage.getItem("posts")) || [];
+
+// نشر بوست
+function addPost() {
+    let text = document.getElementById("postInput").value.trim();
+    if(!text) return;
+    posts.unshift({text:text, likes:0, comments:[]});
+    localStorage.setItem("posts", JSON.stringify(posts));
+    document.getElementById("postInput").value = "";
+    renderPosts();
+}
+
+// عرض البوستات والكومنتات
+function renderPosts() {
+    let container = document.getElementById("posts");
+    container.innerHTML = "";
+    posts.forEach((p,i)=>{
+        let div = document.createElement("div");
+        div.className = "post";
+        div.innerHTML = `
+            <div>${p.text}</div>
+            <div class="actions">
+                <button onclick="likePost(${i})">❤️ ${p.likes}</button>
+            </div>
+            <input type="text" placeholder="اكتب تعليق..." onkeypress="if(event.key==='Enter'){addComment(${i}, this)}">
+            <div>${p.comments.map(c=>`<div class="comment">${c}</div>`).join("")}</div>
+        `;
+        container.appendChild(div);
+    });
+}
+
+// لايك
+function likePost(i) {
+    posts[i].likes++;
+    localStorage.setItem("posts", JSON.stringify(posts));
+    renderPosts();
+}
+
+// إضافة كومنت
+function addComment(i,input) {
+    let text = input.value.trim();
+    if(!text) return;
+    posts[i].comments.push(text);
+    input.value="";
+    localStorage.setItem("posts", JSON.stringify(posts));
+    renderPosts();
+}
+
+// عرض أولي
+renderPosts();
+</script>
 
 </body>
 </html>
